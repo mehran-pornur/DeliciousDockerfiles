@@ -1,0 +1,70 @@
+1- Configuration for Docker Compose 
+    > mkdir gitlab
+  #set environment variable(path use in docker commpose)
+    > export GITLAB_HOME=$(pwd)/gitlab
+
+2- vim docker-compose.yml
+  # docker-compose.yml
+  version: '3.7'
+  services:
+    web:
+      image: 'gitlab/gitlab-ce:latest'
+      restart: always
+      hostname: 'localhost'
+      container_name: gitlab-ce
+      environment:
+        GITLAB_OMNIBUS_CONFIG: |
+          external_url 'http://localhost'
+      ports:
+        - '8080:80'
+        - '8443:443'
+      volumes:
+        - '$GITLAB_HOME/config:/etc/gitlab'
+        - '$GITLAB_HOME/logs:/var/log/gitlab'
+        - '$GITLAB_HOME/data:/var/opt/gitlab'
+      networks:
+        - gitlab
+    gitlab-runner:
+      image: gitlab/gitlab-runner:alpine
+      container_name: gitlab-runner    
+      restart: always
+      depends_on:
+        - web
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - '$GITLAB_HOME/gitlab-runner:/etc/gitlab-runner'
+      networks:
+        - gitlab
+  
+  networks:
+    gitlab:
+      name: gitlab-network
+3- docker compose up -d
+4- temperory password generated auto , using below command
+      > docker exec -it gitlab-ce grep 'Password:' /etc/gitlab/initial_root_password
+5- GitLab Launching
+  # Our GitLab is available at: http://localhost:8080
+  # we must enter the “root” in Username field and temprory password
+6- after launching and configuration running this command 
+      > docker exec -it gitlab-runner gitlab-runner register --url "http://gitlab-ce" --clone-url "http://gitlab-ce"
+  # Enter the GitLab instance URL: confirm the entered value (click enter)
+    Enter the registration token: enter the token copied before.
+    Enter a description for the runner: enter the name of the runner, e.g. docker-runner
+    Enter tags for the runner: leave the field blank here
+    Enter an executor: enter docker here
+    Enter the default Docker image: here we provide the default docker image, e.g. maven: latest
+
+7- After proper configuration, we should see confirmation Runner registred successfully:
+      >  sudo vi gitlab/gitlab-runner/config.toml
+          # Then we add new line to the end of the runner configuration: network_mode = “gitlab-network”
+          # to check this configuration http://localhost:8080/admin/runners
+
+
+
+
+
+
+
+
+
+
