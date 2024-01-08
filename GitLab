@@ -4,6 +4,7 @@
     > export GITLAB_HOME=$(pwd)/gitlab
 
 2- vim docker-compose.yml
+**************************************************************************************************************************
   # docker-compose.yml
   version: '3.7'
   services:
@@ -39,6 +40,7 @@
   networks:
     gitlab:
       name: gitlab-network
+*****************************************************************************************************************************
 3- docker compose up -d
 4- temperory password generated auto , using below command
       > docker exec -it gitlab-ce grep 'Password:' /etc/gitlab/initial_root_password
