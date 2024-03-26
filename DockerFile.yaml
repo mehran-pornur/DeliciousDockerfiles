@@ -1,0 +1,31 @@
+# Use the official Ubuntu base image
+FROM ubuntu:22.04
+
+# Set environment variables
+ENV NEXUS_VERSION=3.41.1-01 \
+    NEXUS_HOME=/opt/nexus \
+    SONATYPE_WORK=/opt/sonatype-work
+
+# Update and install necessary packages
+RUN apt-get update -y && \
+    apt-get install -y curl tar
+
+# Create a user and group
+RUN addgroup --system --gid 1001 nexus && \
+    adduser --system --uid 1001 --ingroup nexus --home ${NEXUS_HOME} nexus
+
+# Download and install Nexus
+RUN curl -L https://download.sonatype.com/nexus/3/nexus-${NEXUS_VERSION}-unix.tar.gz | tar -xz -C /opt && \
+    mv /opt/nexus-${NEXUS_VERSION} ${NEXUS_HOME}
+
+# Switch to the nexus user
+USER nexus
+
+# Set Nexus data directory as a volume
+VOLUME ${SONATYPE_WORK}
+
+# Expose default Nexus port
+EXPOSE 8081
+
+# Set the default command to run Nexus
+CMD ["sh", "-c", "${NEXUS_HOME}/bin/nexus run"]
